@@ -8,7 +8,7 @@ from StateAbbreviationDict import state_abbreviations
 
 class PokeWeatherGUI:
     def __init__(self):
-        self.root = ThemedTk(className = "WeatherLight", theme = "yaru")
+        self.root = ThemedTk(className = "PokeWeather", theme = "yaru")
         self.root.overrideredirect(True)
         self.root.geometry("800x150")
         self.root.attributes("-alpha", .9)
@@ -102,11 +102,11 @@ class PokeWeatherGUI:
         #set window close protocol
 
     async def create_api_link(self, location):
-        data = APILink.get_api_data("https://api.weather.gov", "weatherlighttestkey",
+        data = APILink.get_api_data("https://api.weather.gov", "pokeweatherkey",
                                 "/points/" + str(location["latitude"]) + "," + str(location["longitude"]))
         parsed_data = json.loads(data.text)
         #get all weather data for area
-        forecast = APILink.get_api_data(parsed_data["properties"]["forecast"], "weatherlighttestkey")
+        forecast = APILink.get_api_data(parsed_data["properties"]["forecast"], "pokeweatherkey")
         parsed_forecast = json.loads(forecast.text)
         #get 7-day forecast data for area
         if parsed_forecast["properties"]["periods"][0]["isDaytime"]:
