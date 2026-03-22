@@ -14,6 +14,8 @@ class PokeWeatherGUI:
         self.root.attributes("-alpha", .9)
         self.root.resizable(False,False)
         self.root.geometry("-0-40")
+        self.root.attributes('-topmost', True)
+        self.root.update()
 
         self.x = None
         self.y = None
@@ -23,11 +25,15 @@ class PokeWeatherGUI:
         #allows the window to be moved via drag and drop
 
         self.bg = PIL.ImageTk.PhotoImage(file="bg.png")
-        self.sunny_img = PIL.ImageTk.PhotoImage(file="gr1.png")
-        self.hot_img = PIL.ImageTk.PhotoImage(file="gr1.png")
-        self.raining_img = PIL.ImageTk.PhotoImage(file="ky1.png")
-        self.snowing_img = PIL.ImageTk.PhotoImage(file="ky2.png")
-        self.clear_img = PIL.ImageTk.PhotoImage(file="ra1.png")
+        self.bg2 = PIL.ImageTk.PhotoImage(file="bg2.png")
+        self.clear_img = PIL.ImageTk.PhotoImage(file="clear.png")
+        self.clear_night_img = PIL.ImageTk.PhotoImage(file="clear_night.png")
+        self.cloudy_img = PIL.ImageTk.PhotoImage(file="cloudy.png")
+        self.cloudy_night_img = PIL.ImageTk.PhotoImage(file="cloudy_night.png")
+        self.sunny_img = PIL.ImageTk.PhotoImage(file="sunny.png")
+        self.rainy_img = PIL.ImageTk.PhotoImage(file="rainy.png")
+        self.stormy_img = PIL.ImageTk.PhotoImage(file="stormy.png")
+        self.snowy_img = PIL.ImageTk.PhotoImage(file="snowy.png")
         self.bg_label = ttk.Label(self.root, image=self.bg, borderwidth=1, relief="sunken")
         #keeps images in memory
 
@@ -70,13 +76,15 @@ class PokeWeatherGUI:
                              textwrap.fill(getattr(self, f"day{i}detailed_data"), width = 100)))
             if i == 1:
                 setattr(self, f"day{i}text", ttk.Label(getattr(self, f"day{i}frame"),
-                                                  text="Today", font=self.font, background=getattr(self, f"day{i}color")))
+                                                  text="Today", font=self.font,
+                                                       background=getattr(self, f"day{i}color")))
             else:
                 setattr(self, f"day{i}text", ttk.Label(getattr(self, f"day{i}frame"),
                                                   text=(current_datetime + timedelta(days=i-1)).strftime('%a'),
-                                                       font=self.font, background=getattr(self, f"day{i}color")))
+                                                       font=self.font,
+                                                       background=getattr(self, f"day{i}color")))
             #it's customary for any weather report to explicitly indicate today as "Today" and not the day
-            getattr(self, f"day{i}image").place(relx = .5, rely = .3, anchor = "n")
+            getattr(self, f"day{i}image").place(relx = .5, rely = .275, anchor = "n")
             getattr(self, f"day{i}forecast").place(relx = .5, rely = .79, anchor = "center")
             getattr(self, f"day{i}text").place(relx = .5, rely = .01, anchor = "n")
             getattr(self, f"day{i}temperature_label").place(relx = .5, rely = .13, anchor = "n")
@@ -131,7 +139,7 @@ class PokeWeatherGUI:
                                        parsed_forecast["properties"]["periods"][12]["shortForecast"],
                                        parsed_forecast["properties"]["periods"][12]["detailedForecast"],
                                        parsed_forecast["properties"]["periods"][12]["temperature"],
-                                       location)
+                                       location, "day")
             #if it's daytime, the same day will have a nighttime forecast
         elif parsed_forecast["properties"]["periods"][1]["name"] == datetime.now().strftime('%A'):
             self.gui_update(parsed_forecast["properties"]["periods"][1]["shortForecast"],
@@ -155,7 +163,7 @@ class PokeWeatherGUI:
                                        parsed_forecast["properties"]["periods"][13]["shortForecast"],
                                        parsed_forecast["properties"]["periods"][13]["detailedForecast"],
                                        parsed_forecast["properties"]["periods"][13]["temperature"],
-                                       location)
+                                       location, "day")
             #if there's at least two forecasts for the same first day in the forecast AND if it's not daytime,
             #it's very early in the morning, and therefore the first forecast can be skipped entirely
         else:
@@ -180,7 +188,7 @@ class PokeWeatherGUI:
                                        parsed_forecast["properties"]["periods"][11]["shortForecast"],
                                        parsed_forecast["properties"]["periods"][11]["detailedForecast"],
                                        parsed_forecast["properties"]["periods"][11]["temperature"],
-                                       location)
+                                       location, "night")
             #otherwise, it's night and before midnight, so "Today" will get the first forecast, and "Tomorrow" the 2nd
             # he API seems to provide 1-2 datasets for each day: "day" and "night". If it's night, the current day
             #(and only the current day) will only have a "night" entry. All other days will have both
@@ -217,6 +225,8 @@ class PokeWeatherGUI:
         location_window.overrideredirect(True)
         location_window.title("Select Location")
         location_window.geometry("300x200")
+        location_window.attributes('-topmost', True)
+        location_window.update()
         #create new window with location entry fields and buttons
 
         location_window.update_idletasks()
@@ -225,7 +235,10 @@ class PokeWeatherGUI:
         location_window.geometry(f"+{x}+{y}")
         #place the window directly in the center of the screen, as ostensibly the user wants to use it right now
 
-        frame = ttk.Frame(location_window,width=300, height=200)
+        bg2_label = ttk.Label(location_window, image=self.bg2, borderwidth=1, relief="sunken")
+        bg2_label.place(relx=0, rely=0, relwidth=1, relheight=1)
+
+        frame = tk.Frame(location_window,width=300, height=200)
         header = ttk.Label(frame, text="Select a city and state", font=(self.font[0], 20))
         city = ttk.Entry(frame, width=30, font=self.font)
         city_label = ttk.Label(frame, text="City", font=self.font)
@@ -236,10 +249,10 @@ class PokeWeatherGUI:
         confirm_button = ttk.Button(frame, text="Confirm")
         cancel_button = ttk.Button(frame, text="Cancel")
 
-        frame.place(relx=.5, rely=.5, anchor="center")
+        frame.place(relx=.5, rely=.5, relwidth=.92, relheight=.92, anchor="center")
         header.place(relx=.5, rely=.1, anchor="n")
-        city.place(relx=1/3, rely=.55, anchor="s")
-        city_label.place(relx=1/3, rely=.65, anchor="s")
+        city.place(relx=.37, rely=.55, anchor="s")
+        city_label.place(relx=.37, rely=.65, anchor="s")
         state.place(relx=7/8, rely=.55, anchor="s")
         state_label.place(relx=7/8, rely=.65, anchor="s")
         confirm_button.place(relx=1/5, rely=.95, anchor="s")
@@ -258,7 +271,7 @@ class PokeWeatherGUI:
                    day5data = "No Data", day5detailed_data = "No Data", day5temperature = "No Data",
                    day6data = "No Data", day6detailed_data = "No Data", day6temperature = "No Data",
                    day7data = "No Data", day7detailed_data = "No Data", day7temperature = "No Data",
-                   current_location = "None"):
+                   current_location = "None", time_of_day = "day"):
         args = locals()
         #for easy dynamic referencing
 
@@ -279,47 +292,72 @@ class PokeWeatherGUI:
                     Hovertip(getattr(self, f"day{i}image"),
                              textwrap.fill(getattr(self, f"day{i}detailed_data"), width = 100)))
 
-            if "Snow" in data:
-                getattr(self, f"day{i}image").config(image=self.snowing_img)
-                setattr(self, f"day{i}color", "#E6EDF7")
-                getattr(self, f"day{i}frame").config(background=getattr(self, f"day{i}color"))
-                getattr(self, f"day{i}image").config(background=getattr(self, f"day{i}color"))
-                getattr(self, f"day{i}forecast").config(background=getattr(self, f"day{i}color"))
-                getattr(self, f"day{i}text").config(background=getattr(self, f"day{i}color"))
-                getattr(self, f"day{i}temperature_label").config(background=getattr(self, f"day{i}color"))
-            elif "Rain" in data:
-                getattr(self, f"day{i}image").config(image=self.raining_img)
-                setattr(self, f"day{i}color", "#E8E6F7")
-                getattr(self, f"day{i}frame").config(background=getattr(self, f"day{i}color"))
-                getattr(self, f"day{i}image").config(background=getattr(self, f"day{i}color"))
-                getattr(self, f"day{i}forecast").config(background=getattr(self, f"day{i}color"))
-                getattr(self, f"day{i}text").config(background=getattr(self, f"day{i}color"))
-                getattr(self, f"day{i}temperature_label").config(background=getattr(self, f"day{i}color"))
-            elif "Hot" in data:
-                getattr(self, f"day{i}image").config(image=self.hot_img)
-                setattr(self, f"day{i}color", "#F7E5E5")
-                getattr(self, f"day{i}frame").config(background=getattr(self, f"day{i}color"))
-                getattr(self, f"day{i}image").config(background=getattr(self, f"day{i}color"))
-                getattr(self, f"day{i}forecast").config(background=getattr(self, f"day{i}color"))
-                getattr(self, f"day{i}text").config(background=getattr(self, f"day{i}color"))
-                getattr(self, f"day{i}temperature_label").config(background=getattr(self, f"day{i}color"))
-            elif "Sunny" in data:
-                getattr(self, f"day{i}image").config(image=self.sunny_img)
-                setattr(self, f"day{i}color", "#F7EDE5")
-                getattr(self, f"day{i}frame").config(background=getattr(self, f"day{i}color"))
-                getattr(self, f"day{i}image").config(background=getattr(self, f"day{i}color"))
-                getattr(self, f"day{i}forecast").config(background=getattr(self, f"day{i}color"))
-                getattr(self, f"day{i}text").config(background=getattr(self, f"day{i}color"))
-                getattr(self, f"day{i}temperature_label").config(background=getattr(self, f"day{i}color"))
-            elif "Clear" in data:
-                getattr(self, f"day{i}image").config(image=self.clear_img)
-                setattr(self, f"day{i}color", "#F2F7E6")
-                getattr(self, f"day{i}frame").config(background=getattr(self, f"day{i}color"))
-                getattr(self, f"day{i}image").config(background=getattr(self, f"day{i}color"))
-                getattr(self, f"day{i}forecast").config(background=getattr(self, f"day{i}color"))
-                getattr(self, f"day{i}text").config(background=getattr(self, f"day{i}color"))
-                getattr(self, f"day{i}temperature_label").config(background=getattr(self, f"day{i}color"))
-            #a bit arbitrary, but matching images to potential deviation from "nice out" is IMO very useful
+            lowered_data_list = data.lower().split(" ")
+            #iterate through the list linearly and choose an icon/color fitting the first keyword(s)
+            for word in lowered_data_list:
+                if "rain" in word or "shower" in word:
+                    if data.rfind("storm") != -1 and not "then" in data[:data.rfind("storm")]:
+                        #the notation for storms isn't uniform, so this just makes sure it's part of the first forecast
+                        if i == 1 and time_of_day == "night":
+                            getattr(self, f"day{i}image").config(image=self.stormy_img)
+                            setattr(self, f"day{i}color", "#DADAE4")
+                            break
+                        else:
+                            getattr(self, f"day{i}image").config(image=self.stormy_img)
+                            setattr(self, f"day{i}color", "#FBECCF")
+                            break
+                    else:
+                        if i == 1 and time_of_day == "night":
+                            getattr(self, f"day{i}image").config(image=self.rainy_img)
+                            setattr(self, f"day{i}color", "#DADAE4")
+                            break
+                        else:
+                            getattr(self, f"day{i}image").config(image=self.rainy_img)
+                            setattr(self, f"day{i}color", "#D9EAF9")
+                            break
+                elif "snow" in word or "frost" in word:
+                    if i == 1 and time_of_day == "night":
+                        getattr(self, f"day{i}image").config(image=self.snowy_img)
+                        setattr(self, f"day{i}color", "#DADAE4")
+                        break
+                    else:
+                        getattr(self, f"day{i}image").config(image=self.snowy_img)
+                        setattr(self, f"day{i}color", "#E9EEF7")
+                        break
+                elif "cloudy" in word or "fog" in word:
+                    if i == 1 and time_of_day == "night":
+                        getattr(self, f"day{i}image").config(image=self.cloudy_night_img)
+                        setattr(self, f"day{i}color", "#DADAE4")
+                        break
+                    else:
+                        getattr(self, f"day{i}image").config(image=self.cloudy_img)
+                        setattr(self, f"day{i}color", "#EFF8E4")
+                        break
+                elif "sunny" in word:
+                    if i == 1 and time_of_day == "night":
+                        getattr(self, f"day{i}image").config(image=self.sunny_img)
+                        setattr(self, f"day{i}color", "#DADAE4")
+                        break
+                    else:
+                        getattr(self, f"day{i}image").config(image=self.sunny_img)
+                        setattr(self, f"day{i}color", "#FBD9D7")
+                        break
+                elif "clear" in word:
+                    if i == 1 and time_of_day == "night":
+                        getattr(self, f"day{i}image").config(image=self.clear_night_img)
+                        setattr(self, f"day{i}color", "#DADAE4")
+                        break
+                    else:
+                        getattr(self, f"day{i}image").config(image=self.clear_img)
+                        setattr(self, f"day{i}color", "#DDF4ED")
+                        break
+                #a bit arbitrary, but matching images to potential deviation from "nice out" is IMO very useful
+
+            getattr(self, f"day{i}frame").config(background=getattr(self, f"day{i}color"))
+            getattr(self, f"day{i}image").config(background=getattr(self, f"day{i}color"))
+            getattr(self, f"day{i}forecast").config(background=getattr(self, f"day{i}color"))
+            getattr(self, f"day{i}text").config(background=getattr(self, f"day{i}color"))
+            getattr(self, f"day{i}temperature_label").config(background=getattr(self, f"day{i}color"))
 
             if i == 1:
                 getattr(self, f"day{i}text").config(text="Today")
