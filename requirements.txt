@@ -1,3 +1,4 @@
 async-tkinter-loop==0.9.3
 geopy==2.4.1
+requests==2.32.5
 ttkthemes==3.3.0
