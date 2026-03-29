@@ -1,4 +1,6 @@
 import json, requests
+
+import geopy.exc
 from geopy import Nominatim
 
 def get_api_data(url, apikey = None, params = ""):
@@ -6,17 +8,20 @@ def get_api_data(url, apikey = None, params = ""):
         #this API uses dynamic URLs to sort data, so this way we have as many options as possible
         if apikey:
             headers =  {"User-Agent": apikey}
-            response = requests.get(url + params, headers = headers)
+            response = requests.get(url + params, headers = headers, timeout=10)
         else:
-            response = requests.get(url + params)
+            response = requests.get(url + params, timeout=10)
         return response
+    except requests.exceptions.Timeout:
+        print(f"Request timed out")
+        return None
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
 
 def get_coordinates(city, state) :
     try:
-        location = Nominatim(user_agent="WeatherLightApp").geocode(f"{city}, {state}", country_codes="us")
+        location = Nominatim(user_agent="WeatherLightApp").geocode(f"{city}, {state}", country_codes="us", timeout=10)
         return location.latitude, location.longitude
     except AttributeError as e:
         if location is None:
@@ -24,6 +29,10 @@ def get_coordinates(city, state) :
         else:
             print(f"An error occurred: {e}")
             print(f"No location found!")
+        # if no location is found, default to Nowhere
+        return 35.159167, -98.442222
+    except geopy.exc.GeocoderTimedOut:
+        print(f"Request timed out")
         # if no location is found, default to Nowhere
         return 35.159167, -98.442222
     except Exception as e:
@@ -35,6 +44,9 @@ def get_coordinates(city, state) :
 def get_user_location():
     try:
         location_data =  json.loads(requests.get("https://geolocation-db.com/json").text)
+    except requests.exceptions.Timeout:
+        print(f"Request timed out")
+        return None
     except Exception as e:
         print(f"An error occurred: {e}")
         print(f"Unable to determine current location")
