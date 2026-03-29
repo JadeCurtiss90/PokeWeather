@@ -1,29 +1,47 @@
-import APILink, asyncio, json, sys, PIL.ImageTk, platform, textwrap
+import APILink, asyncio, json, sys, PIL.ImageTk, platform, textwrap, types
 import tkinter as tk
 from datetime import datetime, timedelta
-from idlelib.tooltip import Hovertip
+from idlelib.tooltip import Hovertip, TooltipBase, OnHoverTooltipBase
 from tkinter import messagebox, ttk
 from ttkthemes import ThemedTk
 from StateAbbreviationDict import state_abbreviations
+from typing import override
+
+class OnTopHovertip(Hovertip):
+    def __init__(self, anchor_widget, text, **kwargs):
+        super().__init__(anchor_widget, text, **kwargs)
+
+    @override
+    def showtip(self):
+        print("moo")
+#        super().showtip()
+
+    @override
+    def showcontents(self):
+        print("moo")
+#        super().showcontents()
 
 class PokeWeatherGUI:
     def __init__(self):
         self.root = ThemedTk(className = "PokeWeather", theme = "yaru")
         self.root.overrideredirect(True)
+        #set window size
         self.root.geometry("800x150")
+        #set initial window position
+        self.root.geometry("-0-40")
         self.root.attributes("-alpha", .9)
         self.root.resizable(False,False)
-        self.root.geometry("-0-40")
         self.root.attributes('-topmost', True)
         self.root.update()
 
+        #allows the window to be moved via drag and drop
         self.x = None
         self.y = None
         self.root.bind("<ButtonPress-1>", self.hold_click)
         self.root.bind("<ButtonRelease-1>", self.release_click)
         self.root.bind("<B1-Motion>", self.move_window)
-        #allows the window to be moved via drag and drop
 
+        #keeps images in memory
         self.bg = PIL.ImageTk.PhotoImage(file="bg.png")
         self.bg2 = PIL.ImageTk.PhotoImage(file="bg2.png")
         self.clear_img = PIL.ImageTk.PhotoImage(file="clear.png")
@@ -35,11 +53,11 @@ class PokeWeatherGUI:
         self.stormy_img = PIL.ImageTk.PhotoImage(file="stormy.png")
         self.snowy_img = PIL.ImageTk.PhotoImage(file="snowy.png")
         self.bg_label = ttk.Label(self.root, image=self.bg, borderwidth=1, relief="sunken")
-        #keeps images in memory
 
-        self.current_location = APILink.get_user_location()
         #user's current location is polled first (slightly inaccurate)
+        self.current_location = APILink.get_user_location()
 
+        #select a pretty font based on the user's OS
         current_os = platform.system()
         if current_os == "Windows":
             self.font =  ("Segoe UI", 8)
@@ -47,13 +65,12 @@ class PokeWeatherGUI:
             self.font = ("San Francisco", 8)
         else:
             self.font = ("Roboto", 8)
-        #select a pretty font based on the user's OS
 
-        current_datetime = datetime.now()
         #this is updated every time the API is called, so there's no reason to keep track of it
+        current_datetime = datetime.now()
 
-        self.bg_label.place(relx=0, rely=0, relwidth=1, relheight=1)
         #place the background label first , as everything else will go overtop it
+        self.bg_label.place(relx=0, rely=0, relwidth=1, relheight=1)
 
         for i in range(1,8):
             setattr(self, f"day{i}data", "No Data")
@@ -62,28 +79,28 @@ class PokeWeatherGUI:
             setattr(self, f"day{i}color", "#FFFFFF")
             setattr(self, f"day{i}frame", tk.Frame(self.bg_label, width=120, height=120, bg=getattr(self, f"day{i}color")))
             setattr(self, f"day{i}image", ttk.Label(getattr(self, f"day{i}frame"), image=self.sunny_img, background=getattr(self, f"day{i}color")))
+            # even the short forecast is long and we need space
             setattr(self, f"day{i}forecast", ttk.Label(getattr(self, f"day{i}frame"),
                                                       text=getattr(self, f"day{i}data"), wraplength=90,
                                                        justify="center", font=(self.font[0],7),
-                                                       #even the short forecast is long and we need space
                                                        background=getattr(self, f"day{i}color")))
             setattr(self, f"day{i}temperature_label", ttk.Label(getattr(self, f"day{i}frame"),
                                                       text=getattr(self, f"day{i}temperature") + "°F",
                                                         justify="center", font=self.font,
                                                         background=getattr(self, f"day{i}color")))
             setattr(self, f"day{i}detailed_forecast",
-                    Hovertip(getattr(self, f"day{i}image"),
+                    OnTopHovertip(getattr(self, f"day{i}image"),
                              textwrap.fill(getattr(self, f"day{i}detailed_data"), width = 100)))
             if i == 1:
                 setattr(self, f"day{i}text", ttk.Label(getattr(self, f"day{i}frame"),
                                                   text="Today", font=self.font,
                                                        background=getattr(self, f"day{i}color")))
             else:
+                #it's customary for any weather report to explicitly indicate today as "Today" and not the day
                 setattr(self, f"day{i}text", ttk.Label(getattr(self, f"day{i}frame"),
                                                   text=(current_datetime + timedelta(days=i-1)).strftime('%a'),
                                                        font=self.font,
                                                        background=getattr(self, f"day{i}color")))
-            #it's customary for any weather report to explicitly indicate today as "Today" and not the day
             getattr(self, f"day{i}image").place(relx = .5, rely = .275, anchor = "n")
             getattr(self, f"day{i}forecast").place(relx = .5, rely = .79, anchor = "center")
             getattr(self, f"day{i}text").place(relx = .5, rely = .01, anchor = "n")
@@ -91,32 +108,33 @@ class PokeWeatherGUI:
             getattr(self, f"day{i}frame").place(relx = ((i-1)*2/14)+.015, relwidth = (1/8)-.01,
                                                 relheight= .81, rely = .43, anchor = "w")
 
-        self.location_button = tk.Button(text="Select Location", relief="flat", borderwidth=0)
+        self.location_button = tk.Button(text="Select Location", relief="ridge", borderwidth=1)
         self.location_field = tk.Label(text="Displaying Results for: None", font=self.font)
-        self.refresh_button = tk.Button(text="Refresh", relief="flat", borderwidth=0)
-        self.close_button = tk.Button(text="Close", relief="flat", borderwidth=0)
+        self.refresh_button = tk.Button(text="Refresh", relief="ridge", borderwidth=1)
+        self.close_button = tk.Button(text="Close", relief="ridge", borderwidth=1)
 
-        self.location_button.place(relx=(1/4)+.0335, rely=.99, anchor="s")
-        self.location_field.place(relx=.5, rely=.99, anchor="s")
+        self.location_button.place(relx=(1/4)+.0335, rely=.999, anchor="s")
+        self.location_field.place(relx=.5, rely=.999, anchor="s")
         self.refresh_button.place(relx=(3/4)-.035, rely=.99, anchor="s")
-        self.close_button.place(relx=.858, rely=.99, anchor="s")
+        self.close_button.place(relx=.858, rely=.999, anchor="s")
 
         self.location_button.config(command=self.on_location_button_click)
         self.refresh_button.config(command=self.on_refresh_button_click)
-        self.close_button.config(command=self.on_closing)
         #this does the same thing as closing the window, so it can be linked to the same function
+        self.close_button.config(command=self.on_closing)
 
-        self.root.protocol("WM_DELETE_WINDOW", lambda: self.on_closing())
         #set window close protocol
+        self.root.protocol("WM_DELETE_WINDOW", lambda: self.on_closing())
 
     async def create_api_link(self, location):
+        #get all weather data for area
         data = APILink.get_api_data("https://api.weather.gov", "pokeweatherkey",
                                 "/points/" + str(location["latitude"]) + "," + str(location["longitude"]))
         parsed_data = json.loads(data.text)
-        #get all weather data for area
+        #get 7-day forecast data for area
         forecast = APILink.get_api_data(parsed_data["properties"]["forecast"], "pokeweatherkey")
         parsed_forecast = json.loads(forecast.text)
-        #get 7-day forecast data for area
+        #if it's daytime, the same day will have a nighttime forecast
         if parsed_forecast["properties"]["periods"][0]["isDaytime"]:
             self.gui_update(parsed_forecast["properties"]["periods"][0]["shortForecast"],
                                        parsed_forecast["properties"]["periods"][0]["detailedForecast"],
@@ -140,7 +158,8 @@ class PokeWeatherGUI:
                                        parsed_forecast["properties"]["periods"][12]["detailedForecast"],
                                        parsed_forecast["properties"]["periods"][12]["temperature"],
                                        location, "day")
-            #if it's daytime, the same day will have a nighttime forecast
+            #if there's at least two forecasts for the same first day in the forecast AND if it's not daytime,
+            #it's very early in the morning, and therefore the first forecast can be skipped entirely
         elif parsed_forecast["properties"]["periods"][1]["name"] == datetime.now().strftime('%A'):
             self.gui_update(parsed_forecast["properties"]["periods"][1]["shortForecast"],
                                        parsed_forecast["properties"]["periods"][1]["detailedForecast"],
@@ -164,9 +183,10 @@ class PokeWeatherGUI:
                                        parsed_forecast["properties"]["periods"][13]["detailedForecast"],
                                        parsed_forecast["properties"]["periods"][13]["temperature"],
                                        location, "day")
-            #if there's at least two forecasts for the same first day in the forecast AND if it's not daytime,
-            #it's very early in the morning, and therefore the first forecast can be skipped entirely
         else:
+            #otherwise, it's night and before midnight, so "Today" will get the first forecast, and "Tomorrow" the 2nd
+            # he API seems to provide 1-2 datasets for each day: "day" and "night". If it's night, the current day
+            #(and only the current day) will only have a "night" entry. All other days will have both
             self.gui_update(parsed_forecast["properties"]["periods"][0]["shortForecast"],
                                        parsed_forecast["properties"]["periods"][0]["detailedForecast"],
                                        parsed_forecast["properties"]["periods"][0]["temperature"],
@@ -189,9 +209,6 @@ class PokeWeatherGUI:
                                        parsed_forecast["properties"]["periods"][11]["detailedForecast"],
                                        parsed_forecast["properties"]["periods"][11]["temperature"],
                                        location, "night")
-            #otherwise, it's night and before midnight, so "Today" will get the first forecast, and "Tomorrow" the 2nd
-            # he API seems to provide 1-2 datasets for each day: "day" and "night". If it's night, the current day
-            #(and only the current day) will only have a "night" entry. All other days will have both
 
     def on_cancel_button_click(self, window):
         window.destroy()
@@ -203,10 +220,11 @@ class PokeWeatherGUI:
 
     def on_confirm_button_click(self, city, state, window):
         new_coordinates = APILink.get_coordinates(city.get(), state.get())
+        #if the default location is pulled (likely due to an error, this catches it and aborts the button click
         if new_coordinates[0] == 35.159167 and new_coordinates[1] == -98.442222:
             messagebox.showerror("Error", "No valid address found! Please try again.")
             return
-            #if the default location is pulled (likely due to an error, this catches it and aborts the button click
+        #some of this data is never used by this app, so dummy data is fine in those fields
         new_location =  {"country_code": "US",
                          "country_name": "United States",
                          "city": city.get(),
@@ -215,25 +233,24 @@ class PokeWeatherGUI:
                          "longitude": new_coordinates[1],
                          "IPv4": "0.0.0.0",
                          "state": state.get()}
-        #some of this data is never used by this app, so dummy data is fine in those fields
         self.current_location = new_location
         self.root.after(100, lambda: asyncio.create_task(self.create_api_link(self.current_location)))
         window.destroy()
 
     def on_location_button_click(self):
+        #create new window with location entry fields and buttons
         location_window = tk.Toplevel(self.root)
         location_window.overrideredirect(True)
         location_window.title("Select Location")
         location_window.geometry("300x200")
         location_window.attributes('-topmost', True)
         location_window.update()
-        #create new window with location entry fields and buttons
 
+        #place the window directly in the center of the screen, as ostensibly the user wants to use it right now
         location_window.update_idletasks()
         x = (location_window.winfo_screenwidth()//2) - (location_window.winfo_width()//2)
         y = (location_window.winfo_screenheight()//2) - (location_window.winfo_height()//2)
         location_window.geometry(f"+{x}+{y}")
-        #place the window directly in the center of the screen, as ostensibly the user wants to use it right now
 
         bg2_label = ttk.Label(location_window, image=self.bg2, borderwidth=1, relief="sunken")
         bg2_label.place(relx=0, rely=0, relwidth=1, relheight=1)
@@ -271,18 +288,19 @@ class PokeWeatherGUI:
                    day5data = "No Data", day5detailed_data = "No Data", day5temperature = "No Data",
                    day6data = "No Data", day6detailed_data = "No Data", day6temperature = "No Data",
                    day7data = "No Data", day7detailed_data = "No Data", day7temperature = "No Data",
-                   current_location = "None", time_of_day = "day"):
-        args = locals()
+                   current_location = None, time_of_day = "day"):
         #for easy dynamic referencing
+        args = locals()
 
         self.location_field.config(text="Displaying Results for: "
                                         + current_location["city"] + ", " + current_location["state"])
 
         for i in range(1,8):
+            #dynamically obtain passed arguments
             data = args[f"day{i}data"]
             detailed_data = args[f"day{i}detailed_data"]
             temperature = args[f"day{i}temperature"]
-            #dynamically obtain passed arguments
+
             setattr(self, f"day{i}data", data),
             getattr(self, f"day{i}forecast").config(text=data)
             setattr(self, f"day{i}temperature", temperature),
@@ -292,8 +310,9 @@ class PokeWeatherGUI:
                     Hovertip(getattr(self, f"day{i}image"),
                              textwrap.fill(getattr(self, f"day{i}detailed_data"), width = 100)))
 
-            lowered_data_list = data.lower().split(" ")
             #iterate through the list linearly and choose an icon/color fitting the first keyword(s)
+            lowered_data_list = data.lower().split(" ")
+            #order is a bit arbitrary, but matching images to potential deviation from "nice out" is IMO very useful
             for word in lowered_data_list:
                 if "rain" in word or "shower" in word:
                     if data.rfind("storm") != -1 and not "then" in data[:data.rfind("storm")]:
@@ -351,7 +370,6 @@ class PokeWeatherGUI:
                         getattr(self, f"day{i}image").config(image=self.clear_img)
                         setattr(self, f"day{i}color", "#DDF4ED")
                         break
-                #a bit arbitrary, but matching images to potential deviation from "nice out" is IMO very useful
 
             getattr(self, f"day{i}frame").config(background=getattr(self, f"day{i}color"))
             getattr(self, f"day{i}image").config(background=getattr(self, f"day{i}color"))
@@ -362,14 +380,15 @@ class PokeWeatherGUI:
             if i == 1:
                 getattr(self, f"day{i}text").config(text="Today")
             else:
-                getattr(self, f"day{i}text").config(text=(datetime.now() + timedelta(days=i-1)).strftime('%a'))
             #as before, "Today" is "Today"
+                getattr(self, f"day{i}text").config(text=(datetime.now() + timedelta(days=i-1)).strftime('%a'))
 
+    #these three functions allow the window to be drag and dropped when clicked anywhere
     def hold_click(self, event):
         self.x = event.x
         self.y = event.y
 
-    def release_click(self, event):
+    def release_click(self, _):
         self.x = None
         self.y = None
 
@@ -377,4 +396,3 @@ class PokeWeatherGUI:
         x = self.root.winfo_x() + event.x - self.x
         y = self.root.winfo_y() + event.y - self.y
         self.root.geometry(f"+{x}+{y}")
-    #these three functions allow the window to be drag and dropped when clicked anywhere

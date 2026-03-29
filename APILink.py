@@ -3,12 +3,12 @@ from geopy import Nominatim
 
 def get_api_data(url, apikey = None, params = ""):
     try:
+        #this API uses dynamic URLs to sort data, so this way we have as many options as possible
         if apikey:
             headers =  {"User-Agent": apikey}
             response = requests.get(url + params, headers = headers)
         else:
             response = requests.get(url + params)
-        #this API uses dynamic URLs to sort data, so this way we have as many options as possible
         return response
     except Exception as e:
         print(f"An error occurred: {e}")
@@ -21,8 +21,8 @@ def get_coordinates(city, state) :
     except Exception as e:
         print(f"An error occurred: {e}")
         print(f"Unable to determine current location")
-        return 35.159167, -98.442222
         # if no location is found, default to Nowhere
+        return 35.159167, -98.442222
 
 def get_user_location():
     try:
@@ -30,7 +30,7 @@ def get_user_location():
     except Exception as e:
         print(f"An error occurred: {e}")
         print(f"Unable to determine current location")
+        # if no location is found, default to Nowhere
         location_data = {"country_code": "US", "country_name": "United States", "city": "Nowhere", "postal": "73038",
                 "latitude": 35.159167, "longitude": -98.442222, "IPv4": "0.0.0.0", "state": "Oklahoma"}
-        #if no location is found, default to Nowhere
     return location_data
