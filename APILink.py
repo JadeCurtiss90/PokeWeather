@@ -16,7 +16,8 @@ def get_api_data(url, apikey = None, params = ""):
 
 def get_coordinates(city, state) :
     try:
-        location = Nominatim(user_agent="WeatherLightApp").geocode(f"{city}, {state}")
+        location = Nominatim(user_agent="WeatherLightApp").geocode(f"{city}, {state}", country_codes="us")
+        print(location.address)
         return location.latitude, location.longitude
     except Exception as e:
         print(f"An error occurred: {e}")
