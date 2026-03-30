@@ -1,25 +1,19 @@
-import APILink, asyncio, json, sys, PIL.ImageTk, platform, textwrap, types
+import APILink, asyncio, json, sys, PIL.ImageTk, platform, textwrap
 import tkinter as tk
 from datetime import datetime, timedelta
-from idlelib.tooltip import Hovertip, TooltipBase, OnHoverTooltipBase
+from idlelib.tooltip import Hovertip
 from tkinter import messagebox, ttk
 from ttkthemes import ThemedTk
 from StateAbbreviationDict import state_abbreviations
-from typing import override
 
 class OnTopHovertip(Hovertip):
     def __init__(self, anchor_widget, text, **kwargs):
         super().__init__(anchor_widget, text, **kwargs)
 
-    @override
     def showtip(self):
-        print("moo")
-#        super().showtip()
-
-    @override
-    def showcontents(self):
-        print("moo")
-#        super().showcontents()
+        super().showtip()
+        self.tipwindow.attributes('-topmost', True)
+        self.tipwindow.attributes()
 
 class PokeWeatherGUI:
     def __init__(self):
@@ -307,7 +301,7 @@ class PokeWeatherGUI:
             getattr(self, f"day{i}temperature_label").config(text=str(temperature) + "°F"),
             setattr(self, f"day{i}detailed_data", detailed_data),
             setattr(self, f"day{i}detailed_forecast",
-                    Hovertip(getattr(self, f"day{i}image"),
+                    OnTopHovertip(getattr(self, f"day{i}image"),
                              textwrap.fill(getattr(self, f"day{i}detailed_data"), width = 100)))
 
             #iterate through the list linearly and choose an icon/color fitting the first keyword(s)
