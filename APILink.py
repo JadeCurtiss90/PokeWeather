@@ -47,6 +47,7 @@ def get_coordinates(city, state) :
             # if no location is found, default to Nowhere, OK's coordinates
             return None, 35.159167, -98.442222
 
+#uses user's IP address to roughly identify where they're located, to load the initial forecast
 def get_user_location():
     try:
         location_data =  json.loads(requests.get("https://geolocation-db.com/json").text)

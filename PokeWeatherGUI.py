@@ -50,6 +50,7 @@ class PokeWeatherGUI:
 
         #user's current location is polled first (slightly inaccurate)
         self.current_location = APILink.get_user_location()
+        self.current_location["state"] = state_abbreviations[self.current_location["state"]]
 
         #select a pretty font based on the user's OS
         current_os = platform.system()
