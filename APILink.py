@@ -51,6 +51,8 @@ def get_coordinates(city, state) :
 def get_user_location():
     try:
         location_data =  json.loads(requests.get("https://geolocation-db.com/json").text)
+        if location_data["country_code"] != "US":
+            raise AttributeError("Autodetected country not in the US! Are you using a VPN?")
     except requests.exceptions.Timeout:
         print(f"Request timed out")
         # if no location is found, default to Nowhere, OK
