@@ -264,7 +264,7 @@ class PokeWeatherGUI:
         city = ttk.Entry(frame, width=30, font=self.font)
         city_label = ttk.Label(frame, text="City", font=self.font)
         state = ttk.Combobox(frame, state='readonly', justify="center", width=3, font=self.font)
-        state["values"] = list(state_abbreviations.keys())
+        state["values"] = list(state_abbreviations.keys())[:51]
         state.current(0)
         state_label = ttk.Label(frame, text="State", font=self.font)
         confirm_button = ttk.Button(frame, text="Confirm")
