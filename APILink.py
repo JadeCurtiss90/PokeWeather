@@ -19,6 +19,7 @@ def get_api_data(url, apikey = None, params = ""):
 
 #despite the function name, this returns coordinates AND city name, to verify the returned location with the user
 def get_coordinates(city, state) :
+    print(city)
     #if the user somehow passes either nothing or an empty string, just terminate immediately without calling out
     if city is None or state is None or city == "" or state == "":
         print(f"Please select a city and state")
@@ -29,7 +30,9 @@ def get_coordinates(city, state) :
             #Nominatim can find plenty more than cities, but cities will always be classified as boundaries or places
             #cities also tend to be the highest priority result when they exist, so we can still safely grab
             #just one result from Nominatim and be accurate as to if the location exists
-            if location.raw.get("class") == "boundary" or location.raw.get("class") == "place":
+            #the final check is needed because Nominatim will sometimes return the entire state with an erroneous
+            #city specified, which will provide an unpredictable (and useless) longitude and latitude
+            if (location.raw.get("class") == "boundary" or location.raw.get("class") == "place") and not location.address[location.address.find(",")+2:] == "United States":
                 return location.address[:location.address.find(",")], location.latitude, location.longitude
             else: raise AttributeError("Result not a city or state")
         except AttributeError as e:
