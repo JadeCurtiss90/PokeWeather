@@ -17,7 +17,7 @@ class PokeWeatherGUI:
     def __init__(self):
         self.root = ThemedTk(className = "PokeWeather", theme = "yaru")
         #set window size
-        self.root.geometry("800x150")
+        self.root.geometry("802x152")
         #set initial window position
         self.root.geometry("-0-40")
         #set all other miscellaneous window properties
@@ -102,19 +102,19 @@ class PokeWeatherGUI:
             getattr(self, f"day{i}forecast").place(relx = .5, rely = .79, anchor = "center")
             getattr(self, f"day{i}text").place(relx = .5, rely = .01, anchor = "n")
             getattr(self, f"day{i}temperature_label").place(relx = .5, rely = .13, anchor = "n")
-            getattr(self, f"day{i}frame").place(relx = ((i-1)*2/14)+.015, relwidth = (1/8)-.01,
-                                                relheight= .81, rely = .43, anchor = "w")
+            getattr(self, f"day{i}frame").place(relx = ((i-1)*2/14)+.015, relwidth = (1/8)-.012,
+                                                relheight= .79, rely = .43, anchor = "w")
         #set up buttons
         self.location_button = tk.Button(text="Select Location", relief="ridge", borderwidth=1)
-        self.location_field = tk.Label(text="Displaying Results for: None", font=self.font)
+        self.location_field = tk.Label(text="Displaying results for: None", font=self.font)
         self.refresh_button = tk.Button(text="Refresh", relief="ridge", borderwidth=1)
         self.close_button = tk.Button(text="Close", relief="ridge", borderwidth=1)
 
         #place buttons
-        self.location_button.place(relx=(1/4)+.0335, rely=.999, anchor="s")
-        self.location_field.place(relx=.5, rely=.999, anchor="s")
+        self.location_button.place(relx=(1/4)+.0335, rely=.99, anchor="s")
+        self.location_field.place(relx=.5, rely=.97, anchor="s")
         self.refresh_button.place(relx=(3/4)-.035, rely=.99, anchor="s")
-        self.close_button.place(relx=.858, rely=.999, anchor="s")
+        self.close_button.place(relx=.858, rely=.99, anchor="s")
 
         #set commands for buttons
         self.location_button.config(command=self.on_location_button_click)
@@ -245,7 +245,7 @@ class PokeWeatherGUI:
         location_window = tk.Toplevel(self.root)
         location_window.overrideredirect(True)
         location_window.title("Select Location")
-        location_window.geometry("300x200")
+        location_window.geometry("302x202")
         location_window.attributes('-topmost', True)
         location_window.update()
 
@@ -298,7 +298,7 @@ class PokeWeatherGUI:
         #for easy dynamic referencing
         args = locals()
 
-        self.location_field.config(text="Displaying Results for: "
+        self.location_field.config(text="Displaying results for: "
                                         + current_location["city"] + ", " + current_location["state"])
         #iterate through each day, one at a time
         for i in range(1,8):
