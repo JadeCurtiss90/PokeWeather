@@ -19,7 +19,6 @@ def get_api_data(url, apikey = None, params = ""):
 
 #despite the function name, this returns coordinates AND city name, to verify the returned location with the user
 def get_coordinates(city, state) :
-    print(city)
     #if the user somehow passes either nothing or an empty string, just terminate immediately without calling out
     if city is None or state is None or city == "" or state == "":
         print(f"Please select a city and state")
