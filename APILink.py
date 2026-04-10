@@ -50,7 +50,7 @@ def get_coordinates(city, state) :
 #uses user's IP address to roughly identify where they're located, to load the initial forecast
 def get_user_location():
     try:
-        location_data =  json.loads(requests.get("https://geolocation-db.com/json").text)
+        location_data =  json.loads(requests.get("https://geolocation-db.com/json", timeout=10).text)
         if location_data["country_code"] != "US":
             raise AttributeError("Autodetected country not in the US! Are you using a VPN?")
     except requests.exceptions.Timeout:
